@@ -22,11 +22,7 @@ THE SOFTWARE.
 
 package org.hypoport.jwt.generator;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
@@ -34,9 +30,7 @@ import net.minidev.json.JSONObject;
 
 import java.io.Reader;
 
-import static org.hypoport.jwt.common.Toolbox.readECDSAPrivateKey;
-import static org.hypoport.jwt.common.Toolbox.readKey;
-import static org.hypoport.jwt.common.Toolbox.readRSAPrivateKey;
+import static org.hypoport.jwt.common.Toolbox.*;
 
 public class JWSGenerator {
 
@@ -52,7 +46,7 @@ public class JWSGenerator {
       return new RSASSASigner(readRSAPrivateKey(keyReader));
     }
     if (name.startsWith("ES")) {
-      return new ECDSASigner(readECDSAPrivateKey(keyReader).getS());
+      return new ECDSASigner(readECDSAPrivateKey(keyReader));
     }
     if (name.startsWith("HS")) {
       return new MACSigner(readKey(keyReader));
