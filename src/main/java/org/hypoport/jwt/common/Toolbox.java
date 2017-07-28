@@ -29,7 +29,6 @@ import com.nimbusds.jose.util.Base64;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.security.KeyFactory;
@@ -47,7 +46,7 @@ public class Toolbox {
         .generatePrivate(new PKCS8EncodedKeySpec(readPemFile(keyReader)));
   }
 
-  public static RSAPublicKey readRSAPublicKey(FileReader keyReader) throws Exception {
+  public static RSAPublicKey readRSAPublicKey(Reader keyReader) throws Exception {
     return (RSAPublicKey) KeyFactory.getInstance("RSA")
         .generatePublic(new X509EncodedKeySpec(readPemFile(keyReader)));
   }
@@ -57,7 +56,7 @@ public class Toolbox {
         .generatePrivate(new PKCS8EncodedKeySpec(readPemFile(keyReader)));
   }
 
-  public static ECPublicKey readECDHPublicKey(FileReader keyReader) throws Exception {
+  public static ECPublicKey readECDSAPublicKey(Reader keyReader) throws Exception {
     return (ECPublicKey) KeyFactory.getInstance("EC")
         .generatePublic(new X509EncodedKeySpec(readPemFile(keyReader)));
   }
@@ -66,8 +65,12 @@ public class Toolbox {
     BufferedReader reader = new BufferedReader(fileReader);
     StringBuilder sb = new StringBuilder();
     for (String s; (s = reader.readLine()) != null; ) {
-      if (s.trim().startsWith("-----BEGIN")) { continue; }
-      if (s.trim().startsWith("-----END")) { continue; }
+      if (s.trim().startsWith("-----BEGIN")) {
+        continue;
+      }
+      if (s.trim().startsWith("-----END")) {
+        continue;
+      }
       sb.append(s).append('\n');
     }
     return decodeBase64(sb.toString());

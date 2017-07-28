@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014 Hypoport AG
+Copyright (c) 2017 Eric Karge
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,35 +20,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  */
 
-package org.hypoport.jwt.generator;
+package org.hypoport.jwt.decoder;
 
 import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JOSEObject;
+import com.nimbusds.jwt.EncryptedJWT;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.SignedJWT;
 import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
 import org.hypoport.jwt.common.Toolbox;
 
 import java.io.FileReader;
 
-import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
-
-public class JWTGenerator {
+public class JWTDecoder {
 
   public static void main(String[] argv) throws Exception {
-    JSONObject header = (JSONObject) new JSONParser(DEFAULT_PERMISSIVE_MODE).parse(argv[0]);
-    final Algorithm algorithm = getAlg(header);
+    JWT jwt = JWTParser.parse(argv[0]);
 
-    String payload = argv[1];
-
-    if (algorithm instanceof JWSAlgorithm) {
-      System.out.println(JWSGenerator.sign(header, (JWSAlgorithm) algorithm, payload, new FileReader(argv[2])));
+    System.out.println(jwt.getHeader());
+    if (jwt instanceof EncryptedJWT) {
+      JWEDecoder.decrypt((EncryptedJWT) jwt, new FileReader(argv[1]));
     }
-    if (algorithm instanceof JWEAlgorithm) {
-      System.out.println(JWEGenerator.encrypt(header, (JWEAlgorithm) algorithm, payload, new FileReader(argv[2])));
-    }
-    if (Algorithm.NONE.equals(algorithm)) {
-      System.out.println(PlainGenerator.encode(header, payload));
+    System.out.println(((JOSEObject) jwt).getPayload());
+    if (jwt instanceof SignedJWT) {
+      System.out.println("verified: " + (argv.length > 1 && JWSVerifier.verify((SignedJWT) jwt, new FileReader(argv[1]))));
     }
   }
 
