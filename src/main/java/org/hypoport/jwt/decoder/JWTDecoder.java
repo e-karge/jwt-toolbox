@@ -22,14 +22,11 @@ THE SOFTWARE.
 
 package org.hypoport.jwt.decoder;
 
-import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
-import net.minidev.json.JSONObject;
-import org.hypoport.jwt.common.Toolbox;
 
 import java.io.FileReader;
 
@@ -44,18 +41,7 @@ public class JWTDecoder {
     }
     System.out.println(((JOSEObject) jwt).getPayload());
     if (jwt instanceof SignedJWT) {
-      System.out.println("verified: " + (argv.length > 1 && JWSVerifier.verify((SignedJWT) jwt, new FileReader(argv[1]))));
+      System.out.println("{\"verified\": " + (argv.length > 1 && JWSVerifier.verify((SignedJWT) jwt, new FileReader(argv[1]))) + '}');
     }
-  }
-
-  private static Algorithm getAlg(JSONObject header) {
-    final Object alg = header.get("alg");
-    if (alg == null) {
-      return Algorithm.NONE;
-    }
-    if (!(alg instanceof String)) {
-      throw new IllegalArgumentException("\"alg\" must be one of: \"none\",\"HS256\",\"HS384\",\"HS512\",\"RS256\",\"RS384\",\"RS512\",\"ES256\",\"ES384\",\"ES512\",\"RSA1_5\",\"RSA-OAEP\",\"ECDH-ES\",\"A128KW\",\"A256KW\",\"A128GCM\",\"A256GCM\"");
-    }
-    return Toolbox.getAlgorithmWithName((String) alg);
   }
 }
