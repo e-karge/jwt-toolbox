@@ -23,23 +23,35 @@ THE SOFTWARE.
 package org.hypoport.jwt.generator;
 
 import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.Header;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
-import org.hypoport.jwt.common.Toolbox;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.FileReader;
+import java.util.Objects;
 
+import static java.lang.System.in;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
 
 public class JWTGenerator {
 
   public static void main(String[] argv) throws Exception {
-    JSONObject header = (JSONObject) new JSONParser(DEFAULT_PERMISSIVE_MODE).parse(argv[0]);
-    final Algorithm algorithm = getAlg(header);
+    final JSONObject header = (JSONObject) new JSONParser(DEFAULT_PERMISSIVE_MODE).parse(argv[0]);
+    final Algorithm algorithm = Header.parseAlgorithm(header);
 
-    String payload = argv[1];
+    final String payload;
+    if (Objects.equals(argv[1], "-")) {
+      payload = IOUtils.toString(in, UTF_8);
+    } else if (argv[1].matches("^[./~]")) {
+      payload = IOUtils.toString(new FileReader(new File(argv[1])));
+    } else {
+      payload = argv[1];
+    }
 
     if (algorithm instanceof JWSAlgorithm) {
       System.out.println(JWSGenerator.sign(header, (JWSAlgorithm) algorithm, payload, new FileReader(argv[2])));
@@ -50,16 +62,5 @@ public class JWTGenerator {
     if (Algorithm.NONE.equals(algorithm)) {
       System.out.println(PlainGenerator.encode(header, payload));
     }
-  }
-
-  private static Algorithm getAlg(JSONObject header) {
-    final Object alg = header.get("alg");
-    if (alg == null) {
-      return Algorithm.NONE;
-    }
-    if (!(alg instanceof String)) {
-      throw new IllegalArgumentException("\"alg\" must be one of: \"none\",\"HS256\",\"HS384\",\"HS512\",\"RS256\",\"RS384\",\"RS512\",\"ES256\",\"ES384\",\"ES512\",\"RSA1_5\",\"RSA-OAEP\",\"ECDH-ES\",\"A128KW\",\"A256KW\",\"A128GCM\",\"A256GCM\"");
-    }
-    return Toolbox.getAlgorithmWithName((String) alg);
   }
 }
