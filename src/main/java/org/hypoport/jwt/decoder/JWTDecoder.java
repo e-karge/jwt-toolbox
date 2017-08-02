@@ -27,13 +27,26 @@ import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.FileReader;
+import java.util.Objects;
+
+import static java.lang.System.in;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class JWTDecoder {
 
   public static void main(String[] argv) throws Exception {
-    JWT jwt = JWTParser.parse(argv[0]);
+    JWT jwt;
+    if (Objects.equals(argv[0], "-")) {
+      jwt = JWTParser.parse(IOUtils.toString(in, UTF_8));
+    } else if (argv[0].matches("^[./~]")) {
+      jwt = JWTParser.parse(IOUtils.toString(new FileReader(new File(argv[0]))));
+    } else {
+      jwt = JWTParser.parse(argv[0]);
+    }
 
     System.out.println(jwt.getHeader());
     if (jwt instanceof EncryptedJWT) {
